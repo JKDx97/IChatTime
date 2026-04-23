@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ichattime_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-ichattime}
+      POSTGRES_PASSWORD: ${DB_PASS:-ichattime_pass}
+      POSTGRES_DB: ${DB_NAME:-ichattime}
+    ports: ["5433:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-ichattime}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
