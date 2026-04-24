@@ -111,3 +111,8 @@
 /* Hide scrollbar for flashes feed */
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* Force no native controls on videos without controls attribute (mobile fix) */
+video:not([controls])::-webkit-media-controls { display: none !important; }
+video:not([controls])::-webkit-media-controls-enclosure { display: none !important; }
+video:not([controls])::-webkit-media-controls-panel { display: none !important; }

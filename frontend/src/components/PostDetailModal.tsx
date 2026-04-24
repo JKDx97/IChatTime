@@ -489,7 +489,7 @@ export default function PostDetailModal({ post, open, onClose, onPostUpdate, onD
             return (
               <>
                 {isVid ? (
-                  <video src={src} controls playsInline preload="metadata" className="h-full w-full object-contain" />
+                  <ModalVideo key={src} src={src} />
                 ) : (
                   <div className="relative w-full h-full">
                     <Image src={src} alt="Publicación" fill className="object-contain" sizes="(max-width:768px) 100vw, 50vw" />
@@ -579,4 +579,53 @@ export default function PostDetailModal({ post, open, onClose, onPostUpdate, onD
   );
 
   return createPortal(modal, document.body);
+}
+
+/* ─── Tap-to-pause video player for modals ─── */
+function ModalVideo({ src }: { src: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    v.muted = true;
+    v.setAttribute('muted', '');
+    v.setAttribute('webkit-playsinline', 'true');
+    v.play().catch(() => {});
+  }, []);
+
+  function toggle() {
+    const v = ref.current;
+    if (!v) return;
+    if (v.paused) {
+      v.play().catch(() => {});
+      setPaused(false);
+    } else {
+      v.pause();
+      setPaused(true);
+    }
+  }
+
+  return (
+    <div className="relative h-full w-full cursor-pointer" onClick={toggle}>
+      <video
+        ref={ref}
+        src={src}
+        autoPlay
+        loop
+        playsInline
+        muted
+        preload="auto"
+        className="h-full w-full object-contain"
+      />
+      {paused && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="rounded-full bg-black/40 backdrop-blur-sm p-5">
+            <Play className="h-12 w-12 text-white fill-white" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

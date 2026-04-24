@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Heart, MessageCircle, Volume2, VolumeX, Trash2 } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, Play } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
@@ -23,7 +23,6 @@ export default function FlashesPage() {
   const [loading, setLoading] = useState(true);
   const fetchingRef = useRef(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [muted, setMuted] = useState(true);
   const [commentFlash, setCommentFlash] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const didInitRef = useRef(false);
@@ -177,8 +176,6 @@ export default function FlashesPage() {
             flash={flash}
             index={idx}
             isActive={idx === activeIndex}
-            muted={muted}
-            onToggleMute={() => setMuted(!muted)}
             onLike={() => toggleLike(flash)}
             onComment={() => setCommentFlash(flash.id)}
             onDelete={flash.userId === me?.id ? () => handleDelete(flash.id) : undefined}
@@ -206,8 +203,6 @@ function FlashCard({
   flash,
   index,
   isActive,
-  muted,
-  onToggleMute,
   onLike,
   onComment,
   onDelete,
@@ -216,8 +211,6 @@ function FlashCard({
   flash: Flash;
   index: number;
   isActive: boolean;
-  muted: boolean;
-  onToggleMute: () => void;
   onLike: () => void;
   onComment: () => void;
   onDelete?: () => void;
@@ -225,30 +218,68 @@ function FlashCard({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [likeAnim, setLikeAnim] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const lastTapRef = useRef(0);
+
+  // Fix React muted attribute bug: force muted on DOM element directly
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = true;
+    v.setAttribute('muted', '');
+    v.setAttribute('webkit-playsinline', 'true');
+  }, []);
 
   // Play/pause based on active state
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
-    if (isActive) {
+    if (isActive && !paused) {
       v.currentTime = 0;
-      v.play().catch(() => {});
+      v.muted = true;
+      const p = v.play();
+      if (p) {
+        p.catch(() => {
+          v.muted = true;
+          v.play().catch(() => {});
+        });
+      }
     } else {
       v.pause();
     }
-  }, [isActive]);
+  }, [isActive, paused]);
 
-  // Mute sync
-  useEffect(() => {
-    if (videoRef.current) videoRef.current.muted = muted;
-  }, [muted]);
-
-  function handleDoubleTap() {
-    if (!flash.likedByMe) {
-      onLike();
-      setLikeAnim(true);
-      setTimeout(() => setLikeAnim(false), 800);
+  function togglePause() {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) {
+      v.play().catch(() => {});
+      setPaused(false);
+    } else {
+      v.pause();
+      setPaused(true);
     }
+  }
+
+  // Single tap = pause/play, double tap = like
+  function handleTap() {
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      // Double tap → like
+      if (!flash.likedByMe) {
+        onLike();
+        setLikeAnim(true);
+        setTimeout(() => setLikeAnim(false), 800);
+      }
+    } else {
+      // Single tap → pause/play (with delay to detect double)
+      setTimeout(() => {
+        if (Date.now() - lastTapRef.current >= 300) {
+          togglePause();
+        }
+      }, 300);
+    }
+    lastTapRef.current = now;
   }
 
   function getVideoUrl(url: string) {
@@ -265,12 +296,22 @@ function FlashCard({
         ref={videoRef}
         src={getVideoUrl(flash.videoUrl)}
         loop
+        autoPlay
         playsInline
-        muted={muted}
+        muted
         preload="auto"
-        onDoubleClick={handleDoubleTap}
+        onClick={handleTap}
         className="h-full w-full max-w-[440px] mx-auto object-contain cursor-pointer"
       />
+
+      {/* Pause indicator */}
+      {paused && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="rounded-full bg-black/40 backdrop-blur-sm p-5">
+            <Play className="h-12 w-12 text-white fill-white" />
+          </div>
+        </div>
+      )}
 
       {/* Double-tap like animation */}
       {likeAnim && (
@@ -295,11 +336,6 @@ function FlashCard({
             <MessageCircle className="h-6 w-6" />
           </div>
           <span className="text-xs font-bold text-white drop-shadow">{flash.commentsCount}</span>
-        </button>
-
-        {/* Mute toggle */}
-        <button onClick={onToggleMute} className="rounded-full p-2.5 text-white bg-black/30 backdrop-blur-sm active:scale-90 transition">
-          {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
         </button>
 
         {/* Delete (own flashes) */}

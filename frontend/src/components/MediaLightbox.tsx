@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
 
 interface Props {
   urls: string[];
@@ -88,14 +88,7 @@ export default function MediaLightbox({
         onClick={(e) => e.stopPropagation()}
       >
         {isVid ? (
-          <video
-            src={src}
-            controls
-            autoPlay
-            playsInline
-            preload="metadata"
-            className="max-h-[90vh] max-w-[90vw] rounded-lg"
-          />
+          <LightboxVideo key={src} src={src} />
         ) : (
           <Image
             src={src}
@@ -117,5 +110,54 @@ export default function MediaLightbox({
       )}
     </div>,
     document.body,
+  );
+}
+
+/* ─── Tap-to-pause video player for lightbox ─── */
+function LightboxVideo({ src }: { src: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    v.muted = true;
+    v.setAttribute('muted', '');
+    v.setAttribute('webkit-playsinline', 'true');
+    v.play().catch(() => {});
+  }, []);
+
+  function toggle() {
+    const v = ref.current;
+    if (!v) return;
+    if (v.paused) {
+      v.play().catch(() => {});
+      setPaused(false);
+    } else {
+      v.pause();
+      setPaused(true);
+    }
+  }
+
+  return (
+    <div className="relative cursor-pointer" onClick={toggle}>
+      <video
+        ref={ref}
+        src={src}
+        autoPlay
+        loop
+        playsInline
+        muted
+        preload="auto"
+        className="max-h-[90vh] max-w-[90vw] rounded-lg"
+      />
+      {paused && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="rounded-full bg-black/40 backdrop-blur-sm p-5">
+            <Play className="h-12 w-12 text-white fill-white" />
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
