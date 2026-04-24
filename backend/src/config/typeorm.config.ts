@@ -19,7 +19,7 @@ export const typeOrmConfig = (config: ConfigService): TypeOrmModuleOptions => {
         }),
     ssl: sslEnabled ? { rejectUnauthorized: false } : false,
     autoLoadEntities: true,
-    synchronize: !isProd,
+    synchronize: config.get<string>('DB_SYNC') === 'true' || !isProd,
     migrations: isProd ? ['dist/migrations/*.js'] : [],
     migrationsRun: isProd,
   };
