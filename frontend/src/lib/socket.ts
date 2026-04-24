@@ -2,10 +2,11 @@ import { io, Socket } from 'socket.io-client';
 import { getAccessToken } from './api';
 
 let socket: Socket | null = null;
+const backendBaseUrl = (process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:4000').replace(/\/$/, '');
 
 export function getSocket(): Socket {
   if (!socket) {
-    socket = io('http://localhost:4000/realtime', {
+    socket = io(`${backendBaseUrl}/realtime`, {
       autoConnect: false,
       auth: { token: getAccessToken() },
     });

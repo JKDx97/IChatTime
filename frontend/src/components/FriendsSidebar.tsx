@@ -186,45 +186,7 @@ export default function FriendsSidebar() {
         </div>
       </aside>
 
-      {/* ══ Mobile: floating button + drawer ══ */}
-      <button
-        onClick={() => setMobileOpen(true)}
-        className="fixed bottom-20 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary-600 text-white shadow-lg transition hover:bg-primary-700 active:scale-95 md:hidden"
-      >
-        <Users className="h-5 w-5" />
-        {onlineCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-green-500 px-1 text-[10px] font-bold text-white">
-            {onlineCount}
-          </span>
-        )}
-      </button>
-
-      {/* Mobile drawer backdrop */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 bg-black/30 md:hidden" onClick={() => setMobileOpen(false)} />
-      )}
-
-      {/* Mobile drawer */}
-      <div
-        className={`fixed inset-y-0 right-0 z-50 w-[280px] flex-col bg-white shadow-xl transition-transform duration-300 md:hidden
-          ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}`}
-      >
-        <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-5">
-          <Users className="h-5 w-5 text-gray-600" />
-          <h2 className="text-base font-bold text-gray-900">Amigos</h2>
-          <span className="ml-auto rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
-            {friends.length}
-          </span>
-          <button onClick={() => setMobileOpen(false)} className="ml-1 rounded-full p-1 text-gray-400 hover:bg-gray-100">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          <FriendsList friends={friends} loading={loading} onSelect={handleOpenChat} />
-        </div>
-      </div>
-
-      {/* ══ Chat bubble modals (bottom-right, next to sidebar) ══ */}
+      {/* ══ Chat bubble modals (bottom-right, next to sidebar — desktop only) ══ */}
       <div className="fixed bottom-0 right-[228px] z-40 hidden items-end gap-2 md:flex">
         {openChats.map((f) => (
           <ChatBubbleModal
@@ -234,15 +196,6 @@ export default function FriendsSidebar() {
           />
         ))}
       </div>
-      {/* Mobile: single chat modal full-width bottom */}
-      {openChats.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-          <ChatBubbleModal
-            friend={openChats[openChats.length - 1]}
-            onClose={() => handleCloseChat(openChats[openChats.length - 1].id)}
-          />
-        </div>
-      )}
     </>
   );
 }

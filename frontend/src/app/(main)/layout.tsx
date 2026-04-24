@@ -28,7 +28,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <Navbar />
       <FriendsSidebar />
       {/* Content area: centered on viewport, constrained on smaller screens to avoid sidebar overlap */}
-      <main className="mx-auto px-4 py-6 pb-20 md:pb-6 animate-page-enter max-w-3xl md:max-w-[calc(100vw-72px-220px-2rem)] xl:max-w-3xl">
+      <main className="mx-auto px-4 py-6 pb-20 md:pb-6 md:animate-page-enter max-w-3xl md:max-w-[calc(100vw-72px-220px-2rem)] xl:max-w-3xl">
         {children}
       </main>
     </div>

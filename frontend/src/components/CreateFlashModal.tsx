@@ -301,11 +301,11 @@ export default function CreateFlashModal({ open, onClose, onCreated }: Props) {
   const playheadPct = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center md:p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={handleClose} />
 
-      <div className="relative z-10 w-full max-w-md animate-modal-enter max-h-[90vh] flex flex-col">
-        <div className="rounded-2xl bg-white shadow-2xl overflow-hidden flex flex-col max-h-full">
+      <div className="relative z-10 w-full max-w-md animate-slide-up md:animate-modal-enter max-h-[90vh] flex flex-col">
+        <div className="rounded-t-2xl md:rounded-2xl bg-white shadow-2xl overflow-hidden flex flex-col max-h-full">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3 shrink-0">
             <button onClick={handleClose} disabled={busy} className="text-sm font-medium text-gray-500 hover:text-gray-700 transition">

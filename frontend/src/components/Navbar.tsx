@@ -88,6 +88,13 @@ export default function Navbar() {
     return () => { clearTimeout(id); document.removeEventListener('click', handleClick); };
   }, [createMenuOpen]);
 
+  // Listen for open-notifications event from mobile header
+  useEffect(() => {
+    const handler = () => setActivePanel('notifications');
+    window.addEventListener('open-notifications', handler);
+    return () => window.removeEventListener('open-notifications', handler);
+  }, []);
+
   function openCreatePost() {
     setCreateMenuOpen(false);
     setShowCreatePost(true);
@@ -499,79 +506,24 @@ export default function Navbar() {
       </aside>
 
       {/* ═══════ Mobile Bottom Bar ═══════ */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-around border-t border-gray-200 bg-white/90 backdrop-blur py-2 md:hidden">
-        {navActions.map((item) => (
-          <div key={item.id} className="relative">
-            <button
-              onClick={item.onClick}
-              className={`relative flex flex-col items-center gap-0.5 p-2 transition-all duration-200 active:scale-90
-                ${item.isActive ? 'text-gray-900' : 'text-gray-500'}`}
-            >
-              <span className="relative">
-                {item.isActive ? item.activeIcon : item.icon}
-                {item.badge && item.badge > 0 ? (
-                  <span className="absolute -right-1.5 -top-1.5 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-bold text-white">
-                    {item.badge > 99 ? '99+' : item.badge}
-                  </span>
-                ) : null}
-              </span>
-              <span className="text-[10px]">{item.label}</span>
-            </button>
-            {item.id === 'create' && createMenuOpen && (
-              <div
-                ref={createMenuRef}
-                onClick={(e) => e.stopPropagation()}
-                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 animate-fade-in z-[100]"
-              >
-                <div className="rounded-xl bg-white shadow-lg border border-gray-200 overflow-hidden min-w-[180px]">
-                  <button
-                    onClick={openCreatePost}
-                    className="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-gray-700 transition hover:bg-gray-50"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-50 text-primary-600 shrink-0">
-                      <ImageIcon className="h-4 w-4" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-semibold text-gray-900 text-[13px]">Publicación</p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={openCreateNote}
-                    className="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-gray-700 transition hover:bg-gray-50"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-50 text-teal-600 shrink-0">
-                      <FileText className="h-4 w-4" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-semibold text-gray-900 text-[13px]">Nota</p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={openCreateFlash}
-                    className="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-gray-700 transition hover:bg-gray-50"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600 shrink-0">
-                      <Film className="h-4 w-4" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-semibold text-gray-900 text-[13px]">Flash</p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={openCreateStory}
-                    className="flex w-full items-center gap-3 px-3 py-2.5 text-sm text-gray-700 transition hover:bg-gray-50"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-fuchsia-50 text-fuchsia-600 shrink-0">
-                      <Clock className="h-4 w-4" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-semibold text-gray-900 text-[13px]">Historia</p>
-                    </div>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+      <nav className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-around border-t border-gray-200 bg-white/90 backdrop-blur py-1.5 safe-area-bottom md:hidden">
+        {navActions.filter((item) => ['feed', 'flashes', 'search', 'messages'].includes(item.id)).map((item) => (
+          <button
+            key={item.id}
+            onClick={item.onClick}
+            className={`relative flex flex-col items-center gap-0.5 p-2 transition-all duration-200 active:scale-90
+              ${item.isActive ? 'text-gray-900' : 'text-gray-500'}`}
+          >
+            <span className="relative">
+              {item.isActive ? item.activeIcon : item.icon}
+              {item.badge && item.badge > 0 ? (
+                <span className="absolute -right-1.5 -top-1.5 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-bold text-white">
+                  {item.badge > 99 ? '99+' : item.badge}
+                </span>
+              ) : null}
+            </span>
+            <span className="text-[10px]">{item.label}</span>
+          </button>
         ))}
         <Link
           href={`/profile/${user.username}`}

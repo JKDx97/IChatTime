@@ -64,14 +64,14 @@ export default function CreateNoteModal({ open, onClose, onCreated }: Props) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center">
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
         onClick={handleClose}
       />
 
-      <div className="relative z-10 w-full max-w-lg mx-4 animate-modal-enter">
-        <div className="rounded-2xl bg-white shadow-2xl overflow-hidden">
+      <div className="relative z-10 w-full max-w-lg md:mx-4 animate-slide-up md:animate-modal-enter">
+        <div className="rounded-t-2xl md:rounded-2xl bg-white shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
             <button

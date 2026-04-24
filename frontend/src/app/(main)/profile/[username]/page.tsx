@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { UserPlus, UserMinus, Grid3X3, Camera, Heart, MessageCircle, Film, Copy, Send, UserCheck, UserX, Clock, Users, Bookmark, Settings, Zap, Play, FileText } from 'lucide-react';
+import { UserPlus, UserMinus, Grid3X3, Camera, Heart, MessageCircle, Film, Copy, Send, UserCheck, UserX, Clock, Users, Bookmark, Settings, Zap, Play, FileText, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
@@ -14,6 +14,7 @@ import PostDetailModal from '@/components/PostDetailModal';
 import NoteDetailModal from '@/components/NoteDetailModal';
 import LoadingLogo from '@/components/LoadingLogo';
 import FollowListModal from '@/components/FollowListModal';
+import PostCard from '@/components/PostCard';
 import { renderHashtags } from '@/lib/renderHashtags';
 
 export default function ProfilePage() {
@@ -53,10 +54,18 @@ export default function ProfilePage() {
   const avatarRef = useRef<HTMLInputElement>(null);
   const setUser = useAuthStore((s) => s.setUser);
   const isMe = me?.username === username;
+  const [isMobile, setIsMobile] = useState(false);
   const { ref: gridSentinelRef, inView: gridInView } = useInView();
   const { ref: favSentinelRef, inView: favInView } = useInView();
   const { ref: flashSentinelRef, inView: flashInView } = useInView();
   const { ref: noteSentinelRef, inView: noteInView } = useInView();
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
@@ -324,6 +333,10 @@ export default function ProfilePage() {
     return post.mediaUrls?.[0]?.match(/\.(mp4|webm|mov)$/i);
   }
 
+  const selectedRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) setTimeout(() => node.scrollIntoView({ behavior: 'auto', block: 'start' }), 50);
+  }, []);
+
   if (!profile) {
     return (
       <div className="flex justify-center py-20">
@@ -332,8 +345,50 @@ export default function ProfilePage() {
     );
   }
 
+  /* ─── Mobile inline post view ─── */
+  if (selectedPost && isMobile) {
+    const isFavView = activeTab === 'favorites';
+    const sourceList = isFavView ? favorites : posts;
+
+    return (
+      <div className="min-h-[calc(100vh-5rem)]">
+        {/* Header */}
+        <div className="sticky top-0 z-30 flex items-center justify-between bg-white border-b border-gray-100 px-3 py-2.5">
+          <button
+            onClick={() => setSelectedPost(null)}
+            className="rounded-lg p-1.5 text-gray-700 hover:bg-gray-100 transition active:scale-90"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h2 className="text-sm font-bold text-gray-900 truncate mx-2">
+            {isFavView ? 'Favoritos' : 'Publicaciones'} de {profile.displayName}
+          </h2>
+          {!isMe ? (
+            <button
+              onClick={toggleFollow}
+              disabled={busy}
+              className={`${stats.isFollowing ? 'btn-secondary' : 'btn-primary'} gap-1 text-xs px-3 py-1.5`}
+            >
+              {stats.isFollowing ? 'Siguiendo' : 'Seguir'}
+            </button>
+          ) : (
+            <div className="w-16" />
+          )}
+        </div>
+        {/* All posts — newer above, selected scrolled-to, older below */}
+        <div className="pb-20 space-y-4">
+          {sourceList.map((p) => (
+            <div key={p.id} ref={p.id === selectedPost.id ? selectedRef : undefined}>
+              <PostCard post={p} onDelete={isMe ? handleDelete : undefined} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 min-h-[calc(100vh-5rem)]">
       {/* Profile header */}
       <div className="card px-4 py-4 sm:px-6 sm:py-5">
         {/* Row 1: Avatar + Name + Actions */}
@@ -433,7 +488,7 @@ export default function ProfilePage() {
               activeTab === 'flashes' ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'
             }`}
           >
-            <Zap className="h-4 w-4" /> Flash
+            <Zap className="h-4 w-4" /> <span className="hidden sm:inline">Flash</span>
           </button>
           <button
             onClick={() => setActiveTab('posts')}
@@ -441,7 +496,7 @@ export default function ProfilePage() {
               activeTab === 'posts' ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'
             }`}
           >
-            <Grid3X3 className="h-4 w-4" /> Publicaciones
+            <Grid3X3 className="h-4 w-4" /> <span className="hidden sm:inline">Publicaciones</span>
           </button>
           <button
             onClick={() => setActiveTab('notes')}
@@ -449,7 +504,7 @@ export default function ProfilePage() {
               activeTab === 'notes' ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'
             }`}
           >
-            <FileText className="h-4 w-4" /> Notas
+            <FileText className="h-4 w-4" /> <span className="hidden sm:inline">Notas</span>
           </button>
           {isMe && (
             <button
@@ -458,7 +513,7 @@ export default function ProfilePage() {
                 activeTab === 'favorites' ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600'
               }`}
             >
-              <Bookmark className="h-4 w-4" /> Favoritos
+              <Bookmark className="h-4 w-4" /> <span className="hidden sm:inline">Favoritos</span>
             </button>
           )}
         </div>

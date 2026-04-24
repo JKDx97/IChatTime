@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, memo } from 'react';
+import { useState, useRef, memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Heart, MessageCircle, Trash2, Bookmark } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, Bookmark, ChevronLeft, ChevronRight } from 'lucide-react';
 import { timeAgo, formatExactDate } from '@/lib/timeago';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
@@ -27,6 +27,8 @@ export default memo(function PostCard({ post, onDelete }: Props) {
   const [saved, setSaved] = useState(post.savedByMe ?? false);
   const [busy, setBusy] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [mediaIdx, setMediaIdx] = useState(0);
+  const touchStartX = useRef(0);
 
   async function toggleLike() {
     if (busy) return;
@@ -113,26 +115,68 @@ export default memo(function PostCard({ post, onDelete }: Props) {
         )}
       </div>
 
-      {/* First media item - click opens modal */}
+      {/* Media carousel */}
       {post.mediaUrls?.length > 0 && (() => {
-        const firstUrl = post.mediaUrls[0];
-        const src = firstUrl.startsWith('http') ? firstUrl : `/uploads/${firstUrl}`;
-        const isVid = firstUrl.match(/\.(mp4|webm|mov)$/i);
+        const urls = post.mediaUrls;
+        const total = urls.length;
+        const currentUrl = urls[mediaIdx] ?? urls[0];
+        const src = currentUrl.startsWith('http') ? currentUrl : `/uploads/${currentUrl}`;
+        const isVid = currentUrl.match(/\.(mp4|webm|mov)$/i);
         return (
-          <button onClick={() => setModalOpen(true)} className="relative w-full bg-gray-100 cursor-pointer block">
-            {isVid ? (
-              <video src={src} muted preload="metadata" className="w-full pointer-events-none" />
-            ) : (
-              <div className="relative aspect-square">
-                <Image src={src} alt="Publicación" fill className="object-cover" sizes="(max-width: 768px) 100vw, 672px" />
+          <div className="relative">
+            <button
+              onClick={() => setModalOpen(true)}
+              onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+              onTouchEnd={(e) => {
+                const dx = e.changedTouches[0].clientX - touchStartX.current;
+                if (dx < -50 && mediaIdx < total - 1) setMediaIdx(mediaIdx + 1);
+                if (dx > 50 && mediaIdx > 0) setMediaIdx(mediaIdx - 1);
+              }}
+              className="relative w-full bg-gray-100 cursor-pointer block"
+            >
+              {isVid ? (
+                <video src={src} muted preload="metadata" className="w-full pointer-events-none" />
+              ) : (
+                <div className="relative aspect-square">
+                  <Image src={src} alt="Publicación" fill className="object-cover" sizes="(max-width: 768px) 100vw, 672px" />
+                </div>
+              )}
+              {total > 1 && (
+                <div className="absolute right-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
+                  {mediaIdx + 1}/{total}
+                </div>
+              )}
+            </button>
+            {/* Arrow buttons for multi-media */}
+            {total > 1 && mediaIdx > 0 && (
+              <button
+                onClick={() => setMediaIdx(mediaIdx - 1)}
+                className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1 text-white transition hover:bg-black/70 active:scale-90"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+            )}
+            {total > 1 && mediaIdx < total - 1 && (
+              <button
+                onClick={() => setMediaIdx(mediaIdx + 1)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1 text-white transition hover:bg-black/70 active:scale-90"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            )}
+            {/* Dots */}
+            {total > 1 && (
+              <div className="flex justify-center gap-1.5 py-2">
+                {urls.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setMediaIdx(i)}
+                    className={`h-1.5 rounded-full transition-all ${i === mediaIdx ? 'w-4 bg-primary-600' : 'w-1.5 bg-gray-300'}`}
+                  />
+                ))}
               </div>
             )}
-            {post.mediaUrls.length > 1 && (
-              <div className="absolute right-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
-                1/{post.mediaUrls.length}
-              </div>
-            )}
-          </button>
+          </div>
         );
       })()}
 

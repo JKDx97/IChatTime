@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback, FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import {
   X, Send, Loader2, ImagePlus, Play,
@@ -263,11 +264,8 @@ export default function FlashCommentsModal({ flashId, flashOwnerId, open, onClos
 
   if (!open) return null;
 
-  return (
-    <div
-      className="w-[340px] shrink-0 bg-white border-l border-gray-200 flex flex-col"
-      style={{ animation: 'slide-in-right 0.2s ease-out both' }}
-    >
+  const content = (
+    <>
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 shrink-0">
         <h3 className="text-sm font-bold text-gray-900">Comentarios</h3>
@@ -332,7 +330,7 @@ export default function FlashCommentsModal({ flashId, flashOwnerId, open, onClos
       )}
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="border-t border-gray-100 px-3 py-2.5 flex items-center gap-2 shrink-0">
+      <form onSubmit={handleSubmit} className="border-t border-gray-100 px-3 py-2.5 mb-3 flex items-center gap-2 shrink-0 safe-area-bottom">
         <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" multiple onChange={handleFileSelect} />
         <button type="button" onClick={() => fileInputRef.current?.click()} className="text-gray-400 hover:text-gray-600 transition shrink-0">
           <ImagePlus className="h-4 w-4" />
@@ -353,6 +351,36 @@ export default function FlashCommentsModal({ flashId, flashOwnerId, open, onClos
           {sending || uploadingMedia ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         </button>
       </form>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop: side panel */}
+      <div
+        className="hidden md:flex w-[340px] shrink-0 bg-white border-l border-gray-200 flex-col"
+        style={{ animation: 'slide-in-right 0.2s ease-out both' }}
+      >
+        {content}
+      </div>
+
+      {/* Mobile: bottom sheet overlay (portaled to body) */}
+      {createPortal(
+        <div className="fixed inset-0 z-[9999] md:hidden" onClick={onClose}>
+          <div className="absolute inset-0 bg-black/40 animate-fade-in" />
+          <div
+            className="fixed inset-x-0 bottom-0 z-[9999] flex flex-col bg-white rounded-t-2xl shadow-2xl animate-slide-up overflow-hidden"
+            style={{ maxHeight: '85vh' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-center pt-2 pb-1 shrink-0">
+              <div className="h-1 w-10 rounded-full bg-gray-300" />
+            </div>
+            {content}
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
   );
 }

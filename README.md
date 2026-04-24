@@ -258,12 +258,19 @@ DB_PORT=5433
 DB_USER=ichattime
 DB_PASS=ichattime_pass
 DB_NAME=ichattime
+DATABASE_URL=
+DB_SSL=false
 JWT_ACCESS_SECRET=tu_secreto_access
 JWT_REFRESH_SECRET=tu_secreto_refresh
 AWS_REGION=us-east-1
 AWS_ACCESS_KEY_ID=tu_key
 AWS_SECRET_ACCESS_KEY=tu_secret
 AWS_S3_BUCKET=ichattime-media
+```
+
+Variables de entorno frontend:
+```env
+NEXT_PUBLIC_BACKEND_URL=http://localhost:4000
 ```
 
 ### 4. Configurar Frontend
@@ -274,6 +281,44 @@ npm run dev
 ```
 
 El frontend estará en `http://localhost:3000` y el backend en `http://localhost:4000`
+
+---
+
+## Despliegue (Vercel + Railway)
+
+### 1) Backend + PostgreSQL en Railway
+1. Crear un proyecto en Railway.
+2. Añadir servicio `PostgreSQL`.
+3. Añadir servicio del backend apuntando a la carpeta `backend/` del repo.
+4. Configurar variables del backend en Railway:
+   - `NODE_ENV=production`
+   - `PORT=4000`
+   - `DATABASE_URL` = URL de PostgreSQL entregada por Railway
+   - `DB_SSL=true`
+   - `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` (seguros)
+   - `JWT_ACCESS_EXPIRES`, `JWT_REFRESH_EXPIRES`
+   - `CORS_ORIGINS` = dominio de Vercel (ej: `https://tu-app.vercel.app`)
+   - Variables AWS/Resend que uses en producción
+5. Railway ejecuta build/start con los scripts del backend (`npm run build` + `npm run start:prod`).
+6. Guardar el dominio público del backend (ej: `https://api-xxx.up.railway.app`).
+
+### 2) Frontend en Vercel
+1. Importar el repo en Vercel y seleccionar la carpeta `frontend/` como Root Directory.
+2. Configurar variable en Vercel:
+   - `NEXT_PUBLIC_BACKEND_URL=https://api-xxx.up.railway.app`
+3. Deploy.
+
+### 3) Validación post-deploy
+- Probar login/registro y refresh token.
+- Probar carga de imágenes/videos y lectura en feed.
+- Probar sockets (`/realtime` y `/chat`).
+- Confirmar que `CORS_ORIGINS` solo incluye dominios permitidos.
+
+### 4) Mantener desarrollo local
+- Local sigue usando `docker-compose` con PostgreSQL en `localhost:5433`.
+- En `backend/.env` local, deja vacío `DATABASE_URL` y usa `DB_HOST/DB_PORT/DB_USER/DB_PASS/DB_NAME`.
+- En `frontend/.env.local`, usa `NEXT_PUBLIC_BACKEND_URL=http://localhost:4000`.
+- Ejecuta como siempre: backend `npm run start:dev`, frontend `npm run dev`.
 
 ---
 

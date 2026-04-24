@@ -164,7 +164,7 @@ export default function FlashesPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-140px)] md:h-[calc(100vh-48px)]">
+    <div className="flex h-[calc(100dvh-64px)] md:h-[calc(100vh-48px)] -mx-4 -mt-6 -mb-20 md:mx-0 md:mt-0 md:mb-0">
       {/* Video feed area */}
       <div
         ref={containerRef}
@@ -258,7 +258,7 @@ function FlashCard({
   return (
     <div
       data-index={index}
-      className="relative h-[calc(100vh-140px)] md:h-[calc(100vh-48px)] snap-start snap-always flex items-center justify-center bg-black"
+      className="relative h-[calc(100dvh-64px)] md:h-[calc(100vh-48px)] snap-start snap-always flex items-center justify-center bg-black"
     >
       {/* Video */}
       <video

@@ -470,12 +470,12 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-theme(spacing.6)*2-64px)] md:h-[calc(100vh-theme(spacing.6)*2)]">
+    <div className="flex flex-col h-[calc(100dvh-64px)] md:h-[calc(100vh-theme(spacing.6)*2)] -mx-4 -mt-6 -mb-20 md:mx-0 md:mt-0 md:mb-0">
       {/* Header */}
-      <div className="card flex items-center gap-3 px-4 py-3 mb-2 flex-shrink-0">
+      <div className="bg-white md:card flex items-center gap-3 px-4 py-3 md:mb-2 flex-shrink-0 border-b border-gray-100 md:border-b-0">
         <button
           onClick={() => router.push('/messages')}
-          className="rounded-full p-1.5 transition hover:bg-gray-100"
+          className="rounded-full p-1.5 transition hover:bg-gray-100 active:scale-90"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -508,7 +508,7 @@ export default function ChatPage() {
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="card flex-1 overflow-y-auto px-4 py-3 space-y-1 mb-2"
+        className="flex-1 overflow-y-auto px-4 py-3 space-y-1 bg-white md:card md:mb-2"
       >
         {loadingHistory && (
           <div className="flex justify-center py-3">
@@ -542,7 +542,7 @@ export default function ChatPage() {
 
       {/* Media previews */}
       {mediaPreviews.length > 0 && (
-        <div className="card mb-2 px-3 py-2 flex-shrink-0">
+        <div className="bg-white px-3 py-2 flex-shrink-0 md:card md:mb-2">
           <div className="flex gap-2 overflow-x-auto pb-1">
             {mediaPreviews.map((p, i) => (
               <div key={i} className="relative flex-shrink-0 h-20 w-20 rounded-lg overflow-hidden bg-gray-100">
@@ -573,7 +573,7 @@ export default function ChatPage() {
 
       {/* Upload progress bar */}
       {uploading && (
-        <div className="card mb-2 px-4 py-2 flex-shrink-0">
+        <div className="bg-white px-4 py-2 flex-shrink-0 md:card md:mb-2">
           <div className="flex items-center gap-3">
             <Loader2 className="h-4 w-4 animate-spin text-primary-600" />
             <div className="flex-1">
@@ -592,7 +592,7 @@ export default function ChatPage() {
       )}
 
       {/* Input area */}
-      <div className="card flex items-end gap-2 px-3 py-2 flex-shrink-0">
+      <div className="bg-white border-t border-gray-100 md:card flex items-end gap-2 px-3 py-2 flex-shrink-0 safe-area-bottom">
         {recorder.recording ? (
           /* Recording UI */
           <div className="flex flex-1 items-center gap-2">

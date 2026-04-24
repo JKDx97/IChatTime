@@ -336,12 +336,140 @@ export default function PostDetailModal({ post, open, onClose, onPostUpdate, onD
   const postMediaUrls = post.mediaUrls ?? [];
   const totalMedia = postMediaUrls.length;
 
+  /* ── Shared comments + input section ── */
+  const commentsSection = (
+    <>
+      {/* Scrollable body */}
+      <div className="flex-1 overflow-y-auto min-h-0">
+        {post.content && (
+          <div className="flex gap-3 px-4 pt-4 pb-2">
+            <div className="shrink-0">
+              <Avatar src={post.user.avatarUrl} alt={post.user.displayName} size={28} />
+            </div>
+            <div>
+              <p className="text-[13px] leading-[18px]">
+                <Link href={`/profile/${post.user.username}`} onClick={onClose} className="font-semibold hover:underline">{post.user.username}</Link>{' '}
+                <span className="text-gray-700">{renderHashtags(post.content)}</span>
+              </p>
+              <p className="mt-1 text-[11px] text-gray-400" title={formatExactDate(post.createdAt)}>{timeAgo(post.createdAt)}</p>
+            </div>
+          </div>
+        )}
+
+        {loadingComments ? (
+          <div className="flex justify-center py-10">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"></div>
+          </div>
+        ) : comments.length === 0 ? (
+          <div className="flex flex-col items-center justify-center flex-1 py-16 px-6 text-center">
+            <p className="text-lg font-bold text-gray-900">Aún no hay comentarios.</p>
+            <p className="mt-1 text-sm text-gray-400">Inicia la conversación.</p>
+          </div>
+        ) : (
+          <div className="py-1">
+            {comments.map((c) => (
+              <CommentItem
+                key={c.id}
+                comment={c}
+                postId={post.id}
+                depth={0}
+                me={me}
+                postOwnerId={post.user.id}
+                onDelete={deleteComment}
+                onReply={handleReply}
+              />
+            ))}
+            <div ref={commentsEndRef} />
+          </div>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="border-t border-gray-200 px-4 pt-2 pb-2 shrink-0">
+        <div className="flex items-center gap-4">
+          <button onClick={toggleLike} className="transition active:scale-90">
+            <Heart className={`h-6 w-6 ${liked ? 'fill-red-500 text-red-500' : 'text-gray-900 hover:text-gray-500'}`} />
+          </button>
+          <button onClick={() => inputRef.current?.focus()} className="transition active:scale-90">
+            <MessageCircle className="h-6 w-6 text-gray-900 hover:text-gray-500" />
+          </button>
+          <div className="flex-1" />
+          <button onClick={toggleSave} className="transition active:scale-90">
+            <Bookmark className={`h-6 w-6 ${saved ? 'fill-gray-900 text-gray-900' : 'text-gray-900 hover:text-gray-500'}`} />
+          </button>
+        </div>
+        <p className="mt-1 text-sm font-semibold text-gray-900">
+          {likesCount === 0 ? 'Sé el primero en indicar que te gusta esto' : `${likesCount.toLocaleString()} me gusta`}
+        </p>
+        <p className="mt-0.5 text-[10px] uppercase tracking-wide text-gray-400" title={formatExactDate(post.createdAt)}>
+          {timeAgo(post.createdAt)}
+        </p>
+      </div>
+
+      {/* Reply indicator + media previews */}
+      {(replyTo || mediaPreviews.length > 0) && (
+        <div className="border-t border-gray-100 px-4 py-1.5 shrink-0">
+          {replyTo && (
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <CornerDownRight className="h-3 w-3" />
+              <span>Respondiendo a <b>@{replyTo.username}</b></span>
+              <button onClick={cancelReply} className="ml-auto text-gray-400 hover:text-gray-600"><X className="h-3 w-3" /></button>
+            </div>
+          )}
+          {mediaPreviews.length > 0 && (
+            <div className="flex gap-1.5 mt-1 overflow-x-auto">
+              {mediaPreviews.map((p, i) => (
+                <div key={i} className="relative h-14 w-14 shrink-0 rounded-md overflow-hidden bg-gray-100">
+                  {p.file.type.startsWith('video/') ? (
+                    <div className="flex h-full w-full items-center justify-center bg-gray-900/80"><Play className="h-4 w-4 text-white" /></div>
+                  ) : (
+                    <Image src={p.url} alt="" fill className="object-cover" sizes="56px" />
+                  )}
+                  <button
+                    onClick={() => { URL.revokeObjectURL(p.url); setMediaPreviews((prev) => prev.filter((_, j) => j !== i)); }}
+                    className="absolute right-0.5 top-0.5 rounded-full bg-black/60 p-0.5 text-white"
+                  >
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Comment input */}
+      <form onSubmit={handleComment} className="flex items-center gap-2 border-t border-gray-200 px-4 py-3 mb-3 shrink-0 safe-area-bottom">
+        <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" multiple onChange={handleFileSelect} />
+        <button type="button" onClick={() => fileInputRef.current?.click()} className="text-gray-400 hover:text-gray-600 transition shrink-0">
+          <ImagePlus className="h-5 w-5" />
+        </button>
+        <input
+          ref={inputRef}
+          type="text"
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder={replyTo ? `Responder a @${replyTo.username}…` : 'Agrega un comentario…'}
+          className="flex-1 bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none"
+        />
+        <button
+          type="submit"
+          disabled={busy || (!body.trim() && mediaPreviews.length === 0)}
+          className="text-sm font-bold text-primary-500 hover:text-primary-700 disabled:opacity-30 disabled:cursor-not-allowed transition"
+        >
+          {uploadingMedia ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Publicar'}
+        </button>
+      </form>
+    </>
+  );
+
   const modal = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-      <div className="absolute inset-0" onClick={onClose}></div>
+      <div className="absolute inset-0 bg-black/50 animate-fade-in" onClick={onClose}></div>
 
+      {/* ═══ Desktop: side-by-side layout ═══ */}
       <div
-        className="relative z-10 flex bg-white rounded-xl shadow-2xl ring-1 ring-black/10 animate-modal-enter overflow-hidden"
+        className="relative z-10 hidden md:flex bg-white rounded-xl shadow-2xl ring-1 ring-black/10 animate-modal-enter overflow-hidden"
         style={{ width: 'calc(100vw - 200px)', maxWidth: 1000, height: 'calc(100vh - 120px)', maxHeight: 720 }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -352,8 +480,8 @@ export default function PostDetailModal({ post, open, onClose, onPostUpdate, onD
           <X className="h-4 w-4" />
         </button>
 
-        {/* ── LEFT: Media Carousel ── */}
-        <div className="hidden md:flex flex-[1.2] bg-black items-center justify-center overflow-hidden rounded-l-xl relative select-none">
+        {/* LEFT: Media Carousel */}
+        <div className="flex flex-[1.2] bg-black items-center justify-center overflow-hidden rounded-l-xl relative select-none">
           {totalMedia > 0 ? (() => {
             const currentUrl = postMediaUrls[mediaIndex];
             const src = currentUrl.startsWith('http') ? currentUrl : `/uploads/${currentUrl}`;
@@ -393,7 +521,7 @@ export default function PostDetailModal({ post, open, onClose, onPostUpdate, onD
           )}
         </div>
 
-        {/* ── RIGHT: Details ── */}
+        {/* RIGHT: Details */}
         <div className="flex flex-col flex-1 min-w-0 border-l border-gray-200">
           {/* Header */}
           <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3 shrink-0">
@@ -410,130 +538,42 @@ export default function PostDetailModal({ post, open, onClose, onPostUpdate, onD
               </button>
             )}
           </div>
-
-          {/* Scrollable body */}
-          <div className="flex-1 overflow-y-auto min-h-0">
-            {post.content && (
-              <div className="flex gap-3 px-4 pt-4 pb-2">
-                <div className="shrink-0">
-                  <Avatar src={post.user.avatarUrl} alt={post.user.displayName} size={28} />
-                </div>
-                <div>
-                  <p className="text-[13px] leading-[18px]">
-                    <Link href={`/profile/${post.user.username}`} onClick={onClose} className="font-semibold hover:underline">{post.user.username}</Link>{' '}
-                    <span className="text-gray-700">{renderHashtags(post.content)}</span>
-                  </p>
-                  <p className="mt-1 text-[11px] text-gray-400" title={formatExactDate(post.createdAt)}>{timeAgo(post.createdAt)}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Comments */}
-            {loadingComments ? (
-              <div className="flex justify-center py-10">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"></div>
-              </div>
-            ) : comments.length === 0 ? (
-              <div className="flex flex-col items-center justify-center flex-1 py-16 px-6 text-center">
-                <p className="text-lg font-bold text-gray-900">Aún no hay comentarios.</p>
-                <p className="mt-1 text-sm text-gray-400">Inicia la conversación.</p>
-              </div>
-            ) : (
-              <div className="py-1">
-                {comments.map((c) => (
-                  <CommentItem
-                    key={c.id}
-                    comment={c}
-                    postId={post.id}
-                    depth={0}
-                    me={me}
-                    postOwnerId={post.user.id}
-                    onDelete={deleteComment}
-                    onReply={handleReply}
-                  />
-                ))}
-                <div ref={commentsEndRef} />
-              </div>
-            )}
-          </div>
-
-          {/* Actions */}
-          <div className="border-t border-gray-200 px-4 pt-2 pb-2 shrink-0">
-            <div className="flex items-center gap-4">
-              <button onClick={toggleLike} className="transition active:scale-90">
-                <Heart className={`h-6 w-6 ${liked ? 'fill-red-500 text-red-500' : 'text-gray-900 hover:text-gray-500'}`} />
-              </button>
-              <button onClick={() => inputRef.current?.focus()} className="transition active:scale-90">
-                <MessageCircle className="h-6 w-6 text-gray-900 hover:text-gray-500" />
-              </button>
-              <div className="flex-1" />
-              <button onClick={toggleSave} className="transition active:scale-90">
-                <Bookmark className={`h-6 w-6 ${saved ? 'fill-gray-900 text-gray-900' : 'text-gray-900 hover:text-gray-500'}`} />
-              </button>
-            </div>
-            <p className="mt-1 text-sm font-semibold text-gray-900">
-              {likesCount === 0 ? 'Sé el primero en indicar que te gusta esto' : `${likesCount.toLocaleString()} me gusta`}
-            </p>
-            <p className="mt-0.5 text-[10px] uppercase tracking-wide text-gray-400" title={formatExactDate(post.createdAt)}>
-              {timeAgo(post.createdAt)}
-            </p>
-          </div>
-
-          {/* Reply indicator + media previews */}
-          {(replyTo || mediaPreviews.length > 0) && (
-            <div className="border-t border-gray-100 px-4 py-1.5 shrink-0">
-              {replyTo && (
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <CornerDownRight className="h-3 w-3" />
-                  <span>Respondiendo a <b>@{replyTo.username}</b></span>
-                  <button onClick={cancelReply} className="ml-auto text-gray-400 hover:text-gray-600"><X className="h-3 w-3" /></button>
-                </div>
-              )}
-              {mediaPreviews.length > 0 && (
-                <div className="flex gap-1.5 mt-1 overflow-x-auto">
-                  {mediaPreviews.map((p, i) => (
-                    <div key={i} className="relative h-14 w-14 shrink-0 rounded-md overflow-hidden bg-gray-100">
-                      {p.file.type.startsWith('video/') ? (
-                        <div className="flex h-full w-full items-center justify-center bg-gray-900/80"><Play className="h-4 w-4 text-white" /></div>
-                      ) : (
-                        <Image src={p.url} alt="" fill className="object-cover" sizes="56px" />
-                      )}
-                      <button
-                        onClick={() => { URL.revokeObjectURL(p.url); setMediaPreviews((prev) => prev.filter((_, j) => j !== i)); }}
-                        className="absolute right-0.5 top-0.5 rounded-full bg-black/60 p-0.5 text-white"
-                      >
-                        <X className="h-2.5 w-2.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Comment input */}
-          <form onSubmit={handleComment} className="flex items-center gap-2 border-t border-gray-200 px-4 py-3 shrink-0">
-            <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" multiple onChange={handleFileSelect} />
-            <button type="button" onClick={() => fileInputRef.current?.click()} className="text-gray-400 hover:text-gray-600 transition shrink-0">
-              <ImagePlus className="h-5 w-5" />
-            </button>
-            <input
-              ref={inputRef}
-              type="text"
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder={replyTo ? `Responder a @${replyTo.username}…` : 'Agrega un comentario…'}
-              className="flex-1 bg-transparent text-sm text-gray-900 placeholder-gray-400 outline-none"
-            />
-            <button
-              type="submit"
-              disabled={busy || (!body.trim() && mediaPreviews.length === 0)}
-              className="text-sm font-bold text-primary-500 hover:text-primary-700 disabled:opacity-30 disabled:cursor-not-allowed transition"
-            >
-              {uploadingMedia ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Publicar'}
-            </button>
-          </form>
+          {commentsSection}
         </div>
+      </div>
+
+      {/* ═══ Mobile: Bottom sheet (like Instagram/TikTok) ═══ */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-10 flex flex-col md:hidden bg-white rounded-t-2xl shadow-2xl animate-slide-up overflow-hidden"
+        style={{ maxHeight: '85vh' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Drag handle */}
+        <div className="flex justify-center pt-2 pb-1 shrink-0">
+          <div className="h-1 w-10 rounded-full bg-gray-300" />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-2.5 shrink-0">
+          <Link href={`/profile/${post.user.username}`} onClick={onClose}>
+            <Avatar src={post.user.avatarUrl} alt={post.user.displayName} size={28} />
+          </Link>
+          <Link href={`/profile/${post.user.username}`} onClick={onClose} className="text-sm font-semibold text-gray-900 hover:underline truncate">
+            {post.user.username}
+          </Link>
+          <span className="text-[11px] text-gray-400">{timeAgo(post.createdAt)}</span>
+          <div className="flex-1" />
+          {me?.id === post.user.id && (
+            <button onClick={handleDeletePost} className="rounded p-1 text-gray-400 hover:text-red-500 transition">
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+          <button onClick={onClose} className="rounded-full p-1 text-gray-400 hover:bg-gray-100 transition">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {commentsSection}
       </div>
     </div>
   );

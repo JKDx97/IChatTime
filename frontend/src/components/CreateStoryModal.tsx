@@ -289,10 +289,10 @@ export default function CreateStoryModal({ open, onClose, onCreated }: Props) {
   const playheadPct = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center">
       <div className="absolute inset-0 bg-black/60 animate-fade-in" onClick={() => !uploading && onClose()} />
-      <div className="relative z-10 w-full max-w-md mx-4 animate-modal-enter">
-        <div className="rounded-2xl bg-white shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+      <div className="relative z-10 w-full max-w-md md:mx-4 animate-slide-up md:animate-modal-enter">
+        <div className="rounded-t-2xl md:rounded-2xl bg-white shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 shrink-0">
             <h2 className="text-base font-bold">Nueva Historia</h2>

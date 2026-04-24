@@ -105,31 +105,32 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <section className="card overflow-hidden">
-        <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-5 py-5 text-white sm:px-6">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-white/85">Inbox</p>
-              <h1 className="mt-1 text-2xl font-bold">Mensajes</h1>
-            </div>
-            <div className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">
-              {conversations.length} chats
-            </div>
+    <div className="-mx-4 -mt-6 -mb-20 md:mx-0 md:mt-0 md:mb-0 md:space-y-4 min-h-[calc(100dvh-64px)] md:min-h-0 flex flex-col md:block bg-white md:bg-transparent">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-5 py-4 md:py-5 text-white md:rounded-t-xl">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-white/85 hidden md:block">Inbox</p>
+            <h1 className="text-xl md:text-2xl font-bold">Mensajes</h1>
           </div>
-          <div className="relative mt-4">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/75" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar conversación..."
-              className="w-full rounded-xl border border-white/30 bg-white/15 py-2.5 pl-9 pr-3 text-sm text-white placeholder:text-white/75 outline-none ring-0 backdrop-blur transition focus:border-white/60 focus:bg-white/20"
-            />
+          <div className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">
+            {conversations.length} chats
           </div>
         </div>
+        <div className="relative mt-3 md:mt-4">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/75" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar conversación..."
+            className="w-full rounded-xl border border-white/30 bg-white/15 py-2.5 pl-9 pr-3 text-sm text-white placeholder:text-white/75 outline-none ring-0 backdrop-blur transition focus:border-white/60 focus:bg-white/20"
+          />
+        </div>
+      </div>
 
-        <div className="divide-y divide-gray-100">
-          {filteredConversations.map((conv) => {
+      {/* Conversations list */}
+      <div className="flex-1 overflow-y-auto divide-y divide-gray-100 md:card md:rounded-t-none">
+        {filteredConversations.map((conv) => {
           const lm = conv.lastMessage;
           let preview = '';
           if (lm.content) {
@@ -144,13 +145,13 @@ export default function MessagesPage() {
             <button
               key={conv.partnerId}
               onClick={() => router.push(`/messages/${conv.partnerId}`)}
-              className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-gray-50 sm:px-5"
+              className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-gray-50 active:bg-gray-100 sm:px-5"
             >
               <div className="relative shrink-0">
                 <Avatar
                   src={conv.partnerAvatarUrl}
                   alt={conv.partnerDisplayName}
-                  size={48}
+                  size={50}
                 />
                 {conv.unreadCount > 0 && (
                   <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-primary-600" />
@@ -158,17 +159,14 @@ export default function MessagesPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <div className="min-w-0">
-                    <span className={`block truncate text-sm ${conv.unreadCount > 0 ? 'font-bold text-gray-900' : 'font-semibold text-gray-800'}`}>
-                      {conv.partnerDisplayName}
-                    </span>
-                    <span className="block truncate text-xs text-gray-400">@{conv.partnerUsername}</span>
-                  </div>
+                  <span className={`truncate text-[15px] ${conv.unreadCount > 0 ? 'font-bold text-gray-900' : 'font-semibold text-gray-800'}`}>
+                    {conv.partnerDisplayName}
+                  </span>
                   <span className="text-xs text-gray-400 flex-shrink-0 ml-2">
                     {timeAgo(lm.createdAt)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mt-0.5">
                   <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'text-gray-900 font-semibold' : 'text-gray-500'}`}>
                     {lm.senderId === me?.id && <span className="text-gray-400">Tú: </span>}
                     {preview}
@@ -183,13 +181,12 @@ export default function MessagesPage() {
             </button>
           );
         })}
-          {filteredConversations.length === 0 && (
-            <div className="px-4 py-12 text-center text-sm text-gray-400">
-              No se encontraron conversaciones para <span className="font-semibold text-gray-500">“{query}”</span>
-            </div>
-          )}
-        </div>
-      </section>
+        {filteredConversations.length === 0 && (
+          <div className="px-4 py-12 text-center text-sm text-gray-400">
+            No se encontraron conversaciones para <span className="font-semibold text-gray-500">"{query}"</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
