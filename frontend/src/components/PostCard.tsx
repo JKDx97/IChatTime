@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, memo } from 'react';
 import Link from 'next/link';
-import { Heart, MessageCircle, Trash2, Bookmark, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, Bookmark, ChevronLeft, ChevronRight, Volume2, VolumeX } from 'lucide-react';
 import { timeAgo, formatExactDate } from '@/lib/timeago';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
@@ -240,6 +240,7 @@ export default memo(function PostCard({ post, onDelete }: Props) {
 function FeedVideo({ src, paused: externalPaused, seekTo, onTimeRef }: { src: string; paused?: boolean; seekTo?: number; onTimeRef?: (t: number) => void }) {
   const ref = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [muted, setMuted] = useState(true);
 
   useEffect(() => {
     const v = ref.current;
@@ -295,8 +296,16 @@ function FeedVideo({ src, paused: externalPaused, seekTo, onTimeRef }: { src: st
     return () => observer.disconnect();
   }, [externalPaused]);
 
+  function toggleMute(e: React.MouseEvent) {
+    e.stopPropagation();
+    const v = ref.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setMuted(v.muted);
+  }
+
   return (
-    <div ref={containerRef} className="w-full bg-black">
+    <div ref={containerRef} className="relative w-full bg-black">
       <video
         ref={ref}
         src={src}
@@ -307,6 +316,12 @@ function FeedVideo({ src, paused: externalPaused, seekTo, onTimeRef }: { src: st
         preload="auto"
         className="w-full max-h-[600px] object-contain pointer-events-none"
       />
+      <button
+        onClick={toggleMute}
+        className="absolute right-2 bottom-2 z-10 rounded-full bg-black/50 p-2 text-white backdrop-blur-sm transition active:scale-90 hover:bg-black/70"
+      >
+        {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+      </button>
     </div>
   );
 }

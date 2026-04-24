@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
-import { X, ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Play, Volume2, VolumeX } from 'lucide-react';
 
 interface Props {
   urls: string[];
@@ -117,6 +117,7 @@ export default function MediaLightbox({
 function LightboxVideo({ src }: { src: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [paused, setPaused] = useState(false);
+  const [muted, setMuted] = useState(true);
 
   useEffect(() => {
     const v = ref.current;
@@ -158,6 +159,12 @@ function LightboxVideo({ src }: { src: string }) {
           </div>
         </div>
       )}
+      <button
+        onClick={(e) => { e.stopPropagation(); const v = ref.current; if (!v) return; v.muted = !v.muted; setMuted(v.muted); }}
+        className="absolute right-2 bottom-2 z-10 rounded-full bg-black/50 p-2 text-white backdrop-blur-sm transition active:scale-90 hover:bg-black/70"
+      >
+        {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+      </button>
     </div>
   );
 }

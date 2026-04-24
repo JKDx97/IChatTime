@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {
   ChevronLeft, ChevronRight, Heart, MessageCircle, Bookmark,
-  Send, Trash2, X, ImagePlus, Loader2, Play,
+  Send, Trash2, X, ImagePlus, Loader2, Play, Volume2, VolumeX,
   CornerDownRight, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { timeAgo, formatExactDate } from '@/lib/timeago';
@@ -587,6 +587,7 @@ export default function PostDetailModal({ post, open, onClose, onPostUpdate, onD
 function ModalVideo({ src, startTime, onTimeSync }: { src: string; startTime?: number; onTimeSync?: (t: number) => void }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [paused, setPaused] = useState(false);
+  const [muted, setMuted] = useState(true);
 
   useEffect(() => {
     const v = ref.current;
@@ -619,6 +620,14 @@ function ModalVideo({ src, startTime, onTimeSync }: { src: string; startTime?: n
     }
   }
 
+  function toggleMute(e: React.MouseEvent) {
+    e.stopPropagation();
+    const v = ref.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setMuted(v.muted);
+  }
+
   return (
     <div className="relative h-full w-full cursor-pointer" onClick={toggle}>
       <video
@@ -638,6 +647,12 @@ function ModalVideo({ src, startTime, onTimeSync }: { src: string; startTime?: n
           </div>
         </div>
       )}
+      <button
+        onClick={toggleMute}
+        className="absolute right-2 bottom-2 z-10 rounded-full bg-black/50 p-2 text-white backdrop-blur-sm transition active:scale-90 hover:bg-black/70"
+      >
+        {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+      </button>
     </div>
   );
 }
