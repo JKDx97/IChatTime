@@ -6,14 +6,6 @@ export const typeOrmConfig = (config: ConfigService): TypeOrmModuleOptions => {
   const databaseUrl = config.get<string>('DATABASE_URL');
   const sslEnabled = (config.get<string>('DB_SSL') ?? (isProd ? 'true' : 'false')) === 'true';
 
-  console.log('[TypeORM Config]', {
-    hasDatabaseUrl: !!databaseUrl,
-    databaseUrlPrefix: databaseUrl ? databaseUrl.substring(0, 30) : 'none',
-    sslEnabled,
-    isProd,
-    dbHost: config.get<string>('DB_HOST') ?? 'not set',
-  });
-
   return {
     type: 'postgres',
     ...(databaseUrl
