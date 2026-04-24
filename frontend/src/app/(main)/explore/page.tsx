@@ -116,6 +116,7 @@ export default function ExplorePage() {
                     <video
                       src={mediaUrl(flash.videoUrl)}
                       muted
+                      playsInline
                       preload="metadata"
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
@@ -144,6 +145,7 @@ export default function ExplorePage() {
                     <video
                       src={mediaUrl(flash.videoUrl)}
                       muted
+                      playsInline
                       preload="metadata"
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />

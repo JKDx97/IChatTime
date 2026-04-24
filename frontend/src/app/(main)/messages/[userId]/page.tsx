@@ -847,6 +847,7 @@ function MessageBubble({
                     <video
                       src={src}
                       muted
+                      playsInline
                       preload="metadata"
                       className="h-full w-full object-cover"
                     />

@@ -182,7 +182,7 @@ export default function CreatePostModal({ open, onClose, onCreated }: Props) {
                     <div key={i} className="relative shrink-0 w-36 h-36 overflow-hidden rounded-xl border border-gray-100">
                       {m.isVideo ? (
                         <div className="relative w-full h-full bg-black flex items-center justify-center">
-                          <video src={m.preview} muted preload="metadata" className="w-full h-full object-cover" />
+                          <video src={m.preview} muted playsInline preload="metadata" className="w-full h-full object-cover" />
                           <div className="absolute inset-0 flex items-center justify-center">
                             <Film className="h-6 w-6 text-white/80" />
                           </div>

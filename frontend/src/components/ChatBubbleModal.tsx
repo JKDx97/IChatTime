@@ -651,7 +651,7 @@ function MiniChatBubble({
                 >
                   {isVid ? (
                     <>
-                      <video src={src} muted preload="metadata" className="h-full w-full object-cover" />
+                      <video src={src} muted playsInline preload="metadata" className="h-full w-full object-cover" />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                         <div className="rounded-full bg-white/90 p-1"><Play className="h-3 w-3 text-gray-900 fill-gray-900" /></div>
                       </div>

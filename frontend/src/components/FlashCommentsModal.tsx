@@ -90,7 +90,7 @@ function FlashCommentItem({
               {comment.mediaUrls.map((u, i) => {
                 const src = mediaUrl(u);
                 return isVideoUrl(u) ? (
-                  <video key={i} src={src} controls className="max-h-32 rounded-lg" />
+                  <video key={i} src={src} controls playsInline preload="metadata" className="max-h-32 rounded-lg" />
                 ) : (
                   <div key={i} className="relative h-24 w-24 rounded-lg overflow-hidden bg-gray-100">
                     <Image src={src} alt="" fill className="object-cover" sizes="96px" />

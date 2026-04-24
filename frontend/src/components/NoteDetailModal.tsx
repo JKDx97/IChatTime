@@ -102,7 +102,7 @@ function CommentItem({
               {comment.mediaUrls.map((u, i) => {
                 const src = mediaUrl(u);
                 return isVideo(u) ? (
-                  <video key={i} src={src} controls className="max-h-40 rounded-lg" />
+                  <video key={i} src={src} controls playsInline preload="metadata" className="max-h-40 rounded-lg" />
                 ) : (
                   <div key={i} className="relative h-32 w-32 rounded-lg overflow-hidden bg-gray-100">
                     <Image src={src} alt="" fill className="object-cover" sizes="128px" />

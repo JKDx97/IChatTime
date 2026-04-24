@@ -104,7 +104,7 @@ function CommentItem({
               {comment.mediaUrls.map((u, i) => {
                 const src = mediaUrl(u);
                 return isVideo(u) ? (
-                  <video key={i} src={src} controls className="max-h-40 rounded-lg" />
+                  <video key={i} src={src} controls playsInline preload="metadata" className="max-h-40 rounded-lg" />
                 ) : (
                   <div key={i} className="relative h-32 w-32 rounded-lg overflow-hidden bg-gray-100">
                     <Image src={src} alt="" fill className="object-cover" sizes="128px" />
@@ -489,7 +489,7 @@ export default function PostDetailModal({ post, open, onClose, onPostUpdate, onD
             return (
               <>
                 {isVid ? (
-                  <video src={src} controls className="h-full w-full object-contain" />
+                  <video src={src} controls playsInline preload="metadata" className="h-full w-full object-contain" />
                 ) : (
                   <div className="relative w-full h-full">
                     <Image src={src} alt="Publicación" fill className="object-contain" sizes="(max-width:768px) 100vw, 50vw" />

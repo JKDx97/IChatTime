@@ -135,7 +135,7 @@ export default memo(function PostCard({ post, onDelete }: Props) {
               className="relative w-full bg-gray-100 cursor-pointer block"
             >
               {isVid ? (
-                <video src={src} muted preload="metadata" className="w-full pointer-events-none" />
+                <video src={src} muted playsInline preload="metadata" className="w-full pointer-events-none" />
               ) : (
                 <div className="relative aspect-square">
                   <Image src={src} alt="Publicación" fill className="object-cover" sizes="(max-width: 768px) 100vw, 672px" />

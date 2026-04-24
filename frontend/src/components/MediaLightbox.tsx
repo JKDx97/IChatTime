@@ -92,6 +92,8 @@ export default function MediaLightbox({
             src={src}
             controls
             autoPlay
+            playsInline
+            preload="metadata"
             className="max-h-[90vh] max-w-[90vw] rounded-lg"
           />
         ) : (

@@ -534,6 +534,7 @@ export default function ProfilePage() {
                     <video
                       src={flash.videoUrl}
                       muted
+                      playsInline
                       preload="metadata"
                       className="h-full w-full object-cover"
                     />
@@ -591,6 +592,7 @@ export default function ProfilePage() {
                         <video
                           src={mediaUrl}
                           muted
+                          playsInline
                           preload="metadata"
                           className="h-full w-full object-cover"
                         />
@@ -699,7 +701,7 @@ export default function ProfilePage() {
                       {fMediaUrl ? (
                         fIsVideo ? (
                           <>
-                            <video src={fMediaUrl} muted preload="metadata" className="h-full w-full object-cover" />
+                            <video src={fMediaUrl} muted playsInline preload="metadata" className="h-full w-full object-cover" />
                             <div className="absolute right-2 top-2 text-white drop-shadow-lg"><Film className="h-5 w-5" /></div>
                           </>
                         ) : (
