@@ -3,13 +3,29 @@ import { ConfigService } from '@nestjs/config';
 
 export const typeOrmConfig = (config: ConfigService): TypeOrmModuleOptions => {
   const isProd = config.get<string>('NODE_ENV') === 'production';
+  const databaseUrl = config.get<string>('DATABASE_URL');
+  const sslEnabled = (config.get<string>('DB_SSL') ?? (isProd ? 'true' : 'false')) === 'true';
+
+  console.log('[TypeORM Config]', {
+    hasDatabaseUrl: !!databaseUrl,
+    databaseUrlPrefix: databaseUrl ? databaseUrl.substring(0, 30) : 'none',
+    sslEnabled,
+    isProd,
+    dbHost: config.get<string>('DB_HOST') ?? 'not set',
+  });
+
   return {
     type: 'postgres',
-    host: config.get<string>('DB_HOST'),
-    port: parseInt(config.get<string>('DB_PORT') ?? '5432', 10),
-    username: config.get<string>('DB_USER'),
-    password: config.get<string>('DB_PASS'),
-    database: config.get<string>('DB_NAME'),
+    ...(databaseUrl
+      ? { url: databaseUrl }
+      : {
+          host: config.get<string>('DB_HOST'),
+          port: parseInt(config.get<string>('DB_PORT') ?? '5432', 10),
+          username: config.get<string>('DB_USER'),
+          password: config.get<string>('DB_PASS'),
+          database: config.get<string>('DB_NAME'),
+        }),
+    ssl: sslEnabled ? { rejectUnauthorized: false } : false,
     autoLoadEntities: true,
     synchronize: !isProd,
     migrations: isProd ? ['dist/migrations/*.js'] : [],
