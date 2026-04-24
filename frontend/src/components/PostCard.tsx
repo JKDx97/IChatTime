@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useRef, memo } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Heart, MessageCircle, Trash2, Bookmark, ChevronLeft, ChevronRight } from 'lucide-react';
 import { timeAgo, formatExactDate } from '@/lib/timeago';
 import toast from 'react-hot-toast';
@@ -29,6 +28,8 @@ export default memo(function PostCard({ post, onDelete }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [mediaIdx, setMediaIdx] = useState(0);
   const touchStartX = useRef(0);
+  const feedVideoTimeRef = useRef(0);
+  const modalVideoTimeRef = useRef(0);
 
   async function toggleLike() {
     if (busy) return;
@@ -135,11 +136,9 @@ export default memo(function PostCard({ post, onDelete }: Props) {
               className="relative w-full bg-gray-100 cursor-pointer block"
             >
               {isVid ? (
-                <video src={src} muted playsInline preload="metadata" className="w-full pointer-events-none" />
+                <FeedVideo src={src} paused={modalOpen} seekTo={feedVideoTimeRef.current} onTimeRef={(t) => { feedVideoTimeRef.current = t; }} />
               ) : (
-                <div className="relative aspect-square">
-                  <Image src={src} alt="Publicación" fill className="object-cover" sizes="(max-width: 768px) 100vw, 672px" />
-                </div>
+                <img src={src} alt="Publicación" className="w-full max-h-[600px] object-contain bg-black" />
               )}
               {total > 1 && (
                 <div className="absolute right-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
@@ -222,12 +221,92 @@ export default memo(function PostCard({ post, onDelete }: Props) {
           <PostDetailModal
             post={currentPost}
             open={modalOpen}
-            onClose={() => setModalOpen(false)}
+            onClose={() => {
+              feedVideoTimeRef.current = modalVideoTimeRef.current;
+              setModalOpen(false);
+            }}
             onPostUpdate={handlePostUpdate}
             onDelete={onDelete ? handleModalDelete : undefined}
+            videoStartTime={feedVideoTimeRef.current}
+            onVideoTimeSync={(t) => { modalVideoTimeRef.current = t; }}
           />
         )
       )}
     </article>
   );
 })
+
+/* ─── Auto-play video when visible in feed ─── */
+function FeedVideo({ src, paused: externalPaused, seekTo, onTimeRef }: { src: string; paused?: boolean; seekTo?: number; onTimeRef?: (t: number) => void }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    v.muted = true;
+    v.setAttribute('muted', '');
+    v.setAttribute('webkit-playsinline', 'true');
+    v.setAttribute('playsinline', '');
+    v.play().catch(() => {});
+  }, []);
+
+  // Report currentTime continuously so modal can sync
+  useEffect(() => {
+    const v = ref.current;
+    if (!v || !onTimeRef) return;
+    const handler = () => onTimeRef(v.currentTime);
+    v.addEventListener('timeupdate', handler);
+    return () => v.removeEventListener('timeupdate', handler);
+  }, [onTimeRef]);
+
+  // Pause/resume based on external state (modal open)
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    if (externalPaused) {
+      v.pause();
+    } else {
+      // Resuming: seek to the time from modal
+      if (seekTo !== undefined && seekTo > 0) v.currentTime = seekTo;
+      v.muted = true;
+      v.play().catch(() => {});
+    }
+  }, [externalPaused]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const v = ref.current;
+    if (!container || !v) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !externalPaused) {
+          v.muted = true;
+          v.play().catch(() => {});
+        } else {
+          v.pause();
+        }
+      },
+      { threshold: 0.3 },
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [externalPaused]);
+
+  return (
+    <div ref={containerRef} className="w-full bg-black">
+      <video
+        ref={ref}
+        src={src}
+        loop
+        muted
+        playsInline
+        autoPlay
+        preload="auto"
+        className="w-full max-h-[600px] object-contain pointer-events-none"
+      />
+    </div>
+  );
+}

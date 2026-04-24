@@ -30,6 +30,8 @@ interface Props {
   onClose: () => void;
   onPostUpdate?: (post: Post) => void;
   onDelete?: (id: string) => void;
+  videoStartTime?: number;
+  onVideoTimeSync?: (time: number) => void;
 }
 
 /* ─── Comment Item (recursive) ──────────────── */
@@ -167,7 +169,7 @@ function CommentItem({
   );
 }
 
-export default function PostDetailModal({ post, open, onClose, onPostUpdate, onDelete }: Props) {
+export default function PostDetailModal({ post, open, onClose, onPostUpdate, onDelete, videoStartTime, onVideoTimeSync }: Props) {
   const me = useAuthStore((s) => s.user);
   const [liked, setLiked] = useState(post.likedByMe);
   const [likesCount, setLikesCount] = useState(post.likesCount);
@@ -489,7 +491,7 @@ export default function PostDetailModal({ post, open, onClose, onPostUpdate, onD
             return (
               <>
                 {isVid ? (
-                  <ModalVideo key={src} src={src} />
+                  <ModalVideo key={src} src={src} startTime={videoStartTime} onTimeSync={onVideoTimeSync} />
                 ) : (
                   <div className="relative w-full h-full">
                     <Image src={src} alt="Publicación" fill className="object-contain" sizes="(max-width:768px) 100vw, 50vw" />
@@ -582,7 +584,7 @@ export default function PostDetailModal({ post, open, onClose, onPostUpdate, onD
 }
 
 /* ─── Tap-to-pause video player for modals ─── */
-function ModalVideo({ src }: { src: string }) {
+function ModalVideo({ src, startTime, onTimeSync }: { src: string; startTime?: number; onTimeSync?: (t: number) => void }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [paused, setPaused] = useState(false);
 
@@ -592,8 +594,18 @@ function ModalVideo({ src }: { src: string }) {
     v.muted = true;
     v.setAttribute('muted', '');
     v.setAttribute('webkit-playsinline', 'true');
+    if (startTime && startTime > 0) v.currentTime = startTime;
     v.play().catch(() => {});
   }, []);
+
+  // Report currentTime back so feed video can sync on modal close
+  useEffect(() => {
+    const v = ref.current;
+    if (!v || !onTimeSync) return;
+    const handler = () => onTimeSync(v.currentTime);
+    v.addEventListener('timeupdate', handler);
+    return () => v.removeEventListener('timeupdate', handler);
+  }, [onTimeSync]);
 
   function toggle() {
     const v = ref.current;
