@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Heart, MessageCircle, Trash2, Play, Volume2, VolumeX } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, Play } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
@@ -219,30 +219,27 @@ function FlashCard({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [likeAnim, setLikeAnim] = useState(false);
   const [paused, setPaused] = useState(false);
-  const [muted, setMuted] = useState(true);
   const lastTapRef = useRef(0);
 
-  // Fix React muted attribute bug: force muted on DOM element directly
+  // Setup webkit-playsinline
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
-    v.muted = true;
-    v.setAttribute('muted', '');
     v.setAttribute('webkit-playsinline', 'true');
   }, []);
 
-  // Play/pause based on active state
+  // Play/pause based on active state — try with audio first
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
     if (isActive && !paused) {
       v.currentTime = 0;
-      v.muted = muted;
+      v.muted = false;
       const p = v.play();
       if (p) {
         p.catch(() => {
+          // Browser blocked unmuted autoplay — start muted, then unmute on first tap
           v.muted = true;
-          setMuted(true);
           v.play().catch(() => {});
         });
       }
@@ -251,14 +248,11 @@ function FlashCard({
     }
   }, [isActive, paused]);
 
-  // Sync muted state
-  useEffect(() => {
-    if (videoRef.current) videoRef.current.muted = muted;
-  }, [muted]);
-
   function togglePause() {
     const v = videoRef.current;
     if (!v) return;
+    // On first user tap, unmute if browser had forced muted autoplay
+    if (v.muted) v.muted = false;
     if (v.paused) {
       v.play().catch(() => {});
       setPaused(false);
@@ -305,7 +299,6 @@ function FlashCard({
         loop
         autoPlay
         playsInline
-        muted
         preload="auto"
         onClick={handleTap}
         className="h-full w-full max-w-[440px] mx-auto object-contain cursor-pointer"
@@ -343,11 +336,6 @@ function FlashCard({
             <MessageCircle className="h-6 w-6" />
           </div>
           <span className="text-xs font-bold text-white drop-shadow">{flash.commentsCount}</span>
-        </button>
-
-        {/* Mute toggle */}
-        <button onClick={() => setMuted(!muted)} className="rounded-full p-2.5 text-white bg-black/30 backdrop-blur-sm active:scale-90 transition">
-          {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
         </button>
 
         {/* Delete (own flashes) */}
