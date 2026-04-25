@@ -532,10 +532,10 @@ export default function ProfilePage() {
                     className="group relative aspect-[9/16] overflow-hidden rounded-lg bg-black"
                   >
                     <video
-                      src={flash.videoUrl}
+                      src={`${flash.videoUrl}#t=0.1`}
                       muted
                       playsInline
-                      preload="metadata"
+                      preload="auto"
                       className="h-full w-full object-cover"
                     />
                     {/* Play icon */}
@@ -590,10 +590,10 @@ export default function ProfilePage() {
                     isVideo ? (
                       <>
                         <video
-                          src={mediaUrl}
+                          src={`${mediaUrl}#t=0.1`}
                           muted
                           playsInline
-                          preload="metadata"
+                          preload="auto"
                           className="h-full w-full object-cover"
                         />
                         <div className="absolute right-2 top-2 text-white drop-shadow-lg">
@@ -701,7 +701,7 @@ export default function ProfilePage() {
                       {fMediaUrl ? (
                         fIsVideo ? (
                           <>
-                            <video src={fMediaUrl} muted playsInline preload="metadata" className="h-full w-full object-cover" />
+                            <video src={`${fMediaUrl}#t=0.1`} muted playsInline preload="auto" className="h-full w-full object-cover" />
                             <div className="absolute right-2 top-2 text-white drop-shadow-lg"><Film className="h-5 w-5" /></div>
                           </>
                         ) : (

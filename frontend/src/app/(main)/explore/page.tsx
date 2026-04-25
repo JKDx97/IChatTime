@@ -114,10 +114,10 @@ export default function ExplorePage() {
                     className="relative w-full h-full overflow-hidden rounded-xl bg-gray-900 group"
                   >
                     <video
-                      src={mediaUrl(flash.videoUrl)}
+                      src={`${mediaUrl(flash.videoUrl)}#t=0.1`}
                       muted
                       playsInline
-                      preload="metadata"
+                      preload="auto"
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
@@ -143,10 +143,10 @@ export default function ExplorePage() {
                     className="relative w-full h-full overflow-hidden rounded-xl bg-gray-900 group"
                   >
                     <video
-                      src={mediaUrl(flash.videoUrl)}
+                      src={`${mediaUrl(flash.videoUrl)}#t=0.1`}
                       muted
                       playsInline
-                      preload="metadata"
+                      preload="auto"
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

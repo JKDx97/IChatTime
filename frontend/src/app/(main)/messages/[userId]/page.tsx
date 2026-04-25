@@ -845,10 +845,10 @@ function MessageBubble({
                     onClick={() => onOpenLightbox(message.mediaUrls, i)}
                   >
                     <video
-                      src={src}
+                      src={`${src}#t=0.1`}
                       muted
                       playsInline
-                      preload="metadata"
+                      preload="auto"
                       className="h-full w-full object-cover"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30">

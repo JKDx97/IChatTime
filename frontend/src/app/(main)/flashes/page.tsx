@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Heart, MessageCircle, Trash2, Play } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, Play, Volume2, VolumeX } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
@@ -219,6 +219,7 @@ function FlashCard({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [likeAnim, setLikeAnim] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [muted, setMuted] = useState(true);
   const lastTapRef = useRef(0);
 
   // Fix React muted attribute bug: force muted on DOM element directly
@@ -236,11 +237,12 @@ function FlashCard({
     if (!v) return;
     if (isActive && !paused) {
       v.currentTime = 0;
-      v.muted = true;
+      v.muted = muted;
       const p = v.play();
       if (p) {
         p.catch(() => {
           v.muted = true;
+          setMuted(true);
           v.play().catch(() => {});
         });
       }
@@ -248,6 +250,11 @@ function FlashCard({
       v.pause();
     }
   }, [isActive, paused]);
+
+  // Sync muted state
+  useEffect(() => {
+    if (videoRef.current) videoRef.current.muted = muted;
+  }, [muted]);
 
   function togglePause() {
     const v = videoRef.current;
@@ -336,6 +343,11 @@ function FlashCard({
             <MessageCircle className="h-6 w-6" />
           </div>
           <span className="text-xs font-bold text-white drop-shadow">{flash.commentsCount}</span>
+        </button>
+
+        {/* Mute toggle */}
+        <button onClick={() => setMuted(!muted)} className="rounded-full p-2.5 text-white bg-black/30 backdrop-blur-sm active:scale-90 transition">
+          {muted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
         </button>
 
         {/* Delete (own flashes) */}
