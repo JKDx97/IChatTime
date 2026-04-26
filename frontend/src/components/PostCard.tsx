@@ -303,7 +303,7 @@ function FeedVideo({ src, paused: externalPaused, seekTo, onTimeRef }: { src: st
   }
 
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div ref={containerRef} className="relative w-full overflow-hidden flex items-center" style={{ maxHeight: '500px' }}>
       <video
         ref={ref}
         src={src}
@@ -312,7 +312,7 @@ function FeedVideo({ src, paused: externalPaused, seekTo, onTimeRef }: { src: st
         playsInline
         autoPlay
         preload="auto"
-        className="w-full pointer-events-none"
+        className="w-full min-h-0 pointer-events-none"
       />
       <button
         onClick={toggleMute}

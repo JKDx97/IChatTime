@@ -228,17 +228,20 @@ function FlashCard({
     v.setAttribute('webkit-playsinline', 'true');
   }, []);
 
-  // Play/pause based on active state — try with audio first
+  // Play/pause based on active state — start muted for iOS, unmute after play
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
     if (isActive && !paused) {
       v.currentTime = 0;
-      v.muted = false;
+      v.muted = true;
       const p = v.play();
       if (p) {
-        p.catch(() => {
-          // Browser blocked unmuted autoplay — start muted, then unmute on first tap
+        p.then(() => {
+          // Playback started, try to unmute
+          v.muted = false;
+        }).catch(() => {
+          // Fallback: keep muted
           v.muted = true;
           v.play().catch(() => {});
         });
@@ -299,6 +302,7 @@ function FlashCard({
         loop
         autoPlay
         playsInline
+        muted
         preload="auto"
         onClick={handleTap}
         className="h-full w-full max-w-[440px] mx-auto object-contain cursor-pointer"
