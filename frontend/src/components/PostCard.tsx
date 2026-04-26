@@ -120,46 +120,34 @@ export default memo(function PostCard({ post, onDelete }: Props) {
       {post.mediaUrls?.length > 0 && (() => {
         const urls = post.mediaUrls;
         const total = urls.length;
+        const currentUrl = urls[mediaIdx] ?? urls[0];
+        const src = currentUrl.startsWith('http') ? currentUrl : `/uploads/${currentUrl}`;
+        const isVid = currentUrl.match(/\.(mp4|webm|mov)$/i);
         return (
-          <div className="relative">
-            {/* Fixed-height container so layout doesn't shift between different-sized media */}
-            <div
-              className="relative w-full bg-black overflow-hidden"
-              style={{ height: 'min(480px, 75vw)' }}
-              onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
-              onTouchEnd={(e) => {
-                const dx = e.changedTouches[0].clientX - touchStartX.current;
-                if (dx < -50 && mediaIdx < total - 1) setMediaIdx(mediaIdx + 1);
-                if (dx > 50 && mediaIdx > 0) setMediaIdx(mediaIdx - 1);
-              }}
-              onClick={() => setModalOpen(true)}
-            >
-              {urls.map((url, i) => {
-                const src = url.startsWith('http') ? url : `/uploads/${url}`;
-                const isVid = url.match(/\.(mp4|webm|mov)$/i);
-                return (
-                  <div
-                    key={i}
-                    className={`absolute inset-0 transition-opacity duration-300 ${i === mediaIdx ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}
-                  >
-                    {isVid ? (
-                      <FeedVideo src={src} paused={modalOpen || i !== mediaIdx} seekTo={i === mediaIdx ? feedVideoTimeRef.current : undefined} onTimeRef={i === mediaIdx ? (t) => { feedVideoTimeRef.current = t; } : undefined} />
-                    ) : (
-                      <img src={src} alt="Publicación" className="h-full w-full object-contain" />
-                    )}
-                  </div>
-                );
-              })}
-              {total > 1 && (
-                <div className="absolute right-3 top-3 z-20 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
-                  {mediaIdx + 1}/{total}
-                </div>
-              )}
-            </div>
+          <div
+            className="relative cursor-pointer"
+            onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+            onTouchEnd={(e) => {
+              const dx = e.changedTouches[0].clientX - touchStartX.current;
+              if (dx < -50 && mediaIdx < total - 1) setMediaIdx(mediaIdx + 1);
+              if (dx > 50 && mediaIdx > 0) setMediaIdx(mediaIdx - 1);
+            }}
+            onClick={() => setModalOpen(true)}
+          >
+            {isVid ? (
+              <FeedVideo src={src} paused={modalOpen} seekTo={feedVideoTimeRef.current} onTimeRef={(t) => { feedVideoTimeRef.current = t; }} />
+            ) : (
+              <img src={src} alt="Publicación" className="w-full" />
+            )}
+            {total > 1 && (
+              <div className="absolute right-3 top-3 z-20 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
+                {mediaIdx + 1}/{total}
+              </div>
+            )}
             {/* Arrow buttons for multi-media */}
             {total > 1 && mediaIdx > 0 && (
               <button
-                onClick={() => setMediaIdx(mediaIdx - 1)}
+                onClick={(e) => { e.stopPropagation(); setMediaIdx(mediaIdx - 1); }}
                 className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1 text-white transition hover:bg-black/70 active:scale-90 z-20"
               >
                 <ChevronLeft className="h-5 w-5" />
@@ -167,7 +155,7 @@ export default memo(function PostCard({ post, onDelete }: Props) {
             )}
             {total > 1 && mediaIdx < total - 1 && (
               <button
-                onClick={() => setMediaIdx(mediaIdx + 1)}
+                onClick={(e) => { e.stopPropagation(); setMediaIdx(mediaIdx + 1); }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1 text-white transition hover:bg-black/70 active:scale-90 z-20"
               >
                 <ChevronRight className="h-5 w-5" />
@@ -179,7 +167,7 @@ export default memo(function PostCard({ post, onDelete }: Props) {
                 {urls.map((_, i) => (
                   <button
                     key={i}
-                    onClick={() => setMediaIdx(i)}
+                    onClick={(e) => { e.stopPropagation(); setMediaIdx(i); }}
                     className={`h-1.5 rounded-full transition-all ${i === mediaIdx ? 'w-4 bg-primary-600' : 'w-1.5 bg-gray-300'}`}
                   />
                 ))}
@@ -315,7 +303,7 @@ function FeedVideo({ src, paused: externalPaused, seekTo, onTimeRef }: { src: st
   }
 
   return (
-    <div ref={containerRef} className="relative h-full w-full bg-black">
+    <div ref={containerRef} className="relative w-full">
       <video
         ref={ref}
         src={src}
@@ -324,7 +312,7 @@ function FeedVideo({ src, paused: externalPaused, seekTo, onTimeRef }: { src: st
         playsInline
         autoPlay
         preload="auto"
-        className="h-full w-full object-contain pointer-events-none"
+        className="w-full pointer-events-none"
       />
       <button
         onClick={toggleMute}
