@@ -47,6 +47,7 @@ export class UploadService {
    */
   private async convertImageToWebP(buffer: Buffer): Promise<Buffer> {
     return sharp(buffer)
+      .rotate() // auto-rotate based on EXIF orientation
       .resize({
         width: 1080,
         height: 1080,
